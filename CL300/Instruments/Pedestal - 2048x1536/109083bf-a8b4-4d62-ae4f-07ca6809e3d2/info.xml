@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pluginstrument>
+    <aircraft>Challenger 300</aircraft>
+    <author>Jack Zero</author>
+    <compatibleFSX>false</compatibleFSX>
+    <compatibleP3D>false</compatibleP3D>
+    <compatibleXPL>true</compatibleXPL>
+    <configVersion>1</configVersion>
+    <description>Pedestal for Ddenn's Challenger 300, meant to be used on a touchscreen or iPad.The layout is optimized for a aspec ratio of 4:3 and a resolution of 2048x1536 or 1024x768 (e.g. old 15" touchscreens).
+It will only work with the latest version of the Challenger (10.31 for X-Plane 10.31) since the names of all custom dataref where changed in the update.
+
+Several features of the panels (zoomable panels, invisible cursors, etc) can be configured via global variables (ZOOMABLE, ALLOW_REVERSE, NOCURSOR) which are defined and documented in the first 20+ lines of the code.
+For more details on the used panel-library, see http://forums.x-plane.org/index.php?showtopic=85916.
+</description>
+    <pluginInterfaceVersion>100</pluginInterfaceVersion>
+    <prefHeight>1536</prefHeight>
+    <prefWidth>2048</prefWidth>
+    <type>Pedestal</type>
+    <uuid>109083bf-a8b4-4d62-ae4f-07ca6809e3d2</uuid>
+    <version>1</version>
+</pluginstrument>
