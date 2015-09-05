@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pluginstrument>
+    <aircraft>Challenger 300</aircraft>
+    <author>Jack Zero</author>
+    <compatibleFSX>false</compatibleFSX>
+    <compatibleP3D>false</compatibleP3D>
+    <compatibleXPL>true</compatibleXPL>
+    <configVersion>1</configVersion>
+    <description>Full cockpit controls (glareshield, pedestal, fmc) for Ddenn's Challenger 300, meant to be used on a Full HD touchscreen with a instance of X-Plane showing the displays running in the background.
+Note that the FMC popup will require X-FMC in order to work.
+It will only work with at least the 10.31 version of the Challenger since the names of all custom dataref where changed in the update.
+</description>
+    <pluginInterfaceVersion>100</pluginInterfaceVersion>
+    <prefHeight>1080</prefHeight>
+    <prefWidth>1920</prefWidth>
+    <type>Cockpit</type>
+    <uuid>9bf85011-c790-4f86-a9db-778e9d1821df</uuid>
+    <version>1</version>
+</pluginstrument>
