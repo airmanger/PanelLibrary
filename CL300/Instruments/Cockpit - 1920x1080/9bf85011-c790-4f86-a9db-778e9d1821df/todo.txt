@@ -1,0 +1,9 @@
+TODO:
+-- Group code / Show
+-- Panels & LEDS
+-- Switches & LEDS
+-- Ambient images
+
+
+API:
+check if file exists?

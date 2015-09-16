@@ -334,8 +334,8 @@ alignment:          alignment
 color:              text color
 width/height:       icon/image width/height
 --]]
-function TextField.new(font, size, alignment, color, width, height)
-    local self = { width = width, height = height, font = font, size = size, color = color, alignment = alignment }
+function TextField.new(family, size, alignment, color, width, height)
+    local self = { width = width, height = height, family = family, size = size, color = color, alignment = alignment }
     setmetatable(self,TextField)
     return self
 end
@@ -364,7 +364,7 @@ function TextField:createImage(x,y,keyword,zoom)
     if zoom == nil then zoom = 1 end
     x = x - math.floor(self.width * zoom * .5)
     y = y - math.floor(self.height * zoom * .5)
-    return {txt_add(" ", "-fx-font-family:\"" .. self.font .. "\"; -fx-font-size:" .. math.floor(self.size * zoom) 
+    return {txt_add(" ", "-fx-font-family:\"" .. self.family .. "\"; -fx-font-size:" .. math.floor(self.size * zoom) 
                     .. "px; -fx-fill: " .. self.color .. "; -fx-text-alignment: " .. self.alignment .. ";", 
                     x, y, self.width * zoom, self.height * zoom)}
 end

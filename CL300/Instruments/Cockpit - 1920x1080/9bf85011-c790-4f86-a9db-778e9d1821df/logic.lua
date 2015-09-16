@@ -2,7 +2,7 @@
 EMPTY = "!EMPTY.png"
 DIAL  = "!DIAL.png"
 -- ** Uncomment the next line to enable the red overlays to show the clickable areas:
---EMPTY = "!RED.png"
+--EMPTY = "!EMPTY_CYAN.png"
 --DIAL  = "!DIAL_CYAN.png"
 
 -- ALLOW_REVERSE: If this is set to true, the up/down button will move the switch in the 
@@ -147,80 +147,44 @@ end
 local ALT_DIAL = ICmd("int/alt_up", "int/alt_down", alt_up, alt_down)
 
 -- ************************************************************************
--- ** XFMC
+-- ** Linked Datarefs
 -- ************************************************************************
-local XfmcLines = {large = {}, small = {}}
+-- Special APU-Logic so you can "hold" the APU switch and the apu start
+-- is triggered via command so a sync via SmartCopilot is possible.
+local APU_Switch  = AInt("int/APU_Switch")
+local APU_Dataref = XInt("sim/cockpit/engine/APU_switch")
+local APU_Start   = XCmd("sim/electrical/APU_start")
+-- APU_Switch is our 'local' switch instance. When moved to 2, it will trigger
+-- the APU_start command and will NOT be automatically moved back to 1 by the 
+-- APU_Dataref.
+local XPDR_LOGIC = Logic.new({APU_Dataref, APU_Switch}, 
+    function(self, valpos, newval, oldval) 
+        if valpos == 1 then -- XP changed
+            if self.values[2] < 2 then
+                self:write(2, newval)
+            else
+                print("*** 2->1 ignored ***")
+            end
+        else -- Knob Turned
+            self:write(1, newval)
+            if newval == 2 then
+                APU_Start:invoke(1)
+            end
+        end
+    end)
 
-function convertXFMCstring(str) 
-    print("called ..." .. string.len(str))
-    local small = ""
-    local large = ""
-    local i = str:find("/")
-    if i == nil then return "" end
-    
-    local page = str:sub(1, i-1)
-    str = str:sub(i+1)
-    
-    while str:len() > 0 do
-        i = str:find(";")
-        local segment
-        if i ~= nil then
-            segment = str:sub(1,i-1)
-            str = str:sub(i+1)
-        else
-            segment = str
-            str = ""
+-- Hide other pages when page is opened
+local PAGE_FMC   = AInt("PAGES/FMC_SHOW")
+local PAGE_UPPER = AInt("PAGES/UPPER_SHOW")
+local PAGE_LOWER = AInt("PAGES/LOWER_SHOW")
+local PAGE_HIDER = Logic.new({PAGE_FMC, PAGE_UPPER, PAGE_LOWER}, 
+    function(self, valpos, newval, oldval) 
+        if newval == 1 then
+            for i = 1,3 do
+                if i ~= valpos then self:write(i, 0) end
+            end
         end
-        i = segment:find(",", 3)
-        local islrg  = (segment:sub(1,1) == "1")
-        print(segment:sub(1,1) .. " = " .. tostring(islrg))
-        local column = tonumber(segment:sub(3,i-1))
-        local chunk  = segment:sub(i+1)
-        
-        local pad = math.floor(column/6.85+.5) - small:len() - 1
-        if pad > 0 then
-            small = small .. string.rep(" ", pad)
-            large = large .. string.rep(" ", pad)
-        end
-        
-        for i = 1,chunk:len() do
-            -- Small fonts have a offset of 128(d) 0x80(hex).
-            -- The asterix char (*) has been translated from 176(d) to 30(d).
-            -- The box char [] has been translated to 31 (d)
-            local c = chunk:byte(i)
-            local il = islarge
-            if c == 30 then c = 176
-            elseif c == 31 then c = 35
-            elseif c > 128 then c = c - 128; il = false
-            else il = true end
-            
-            large = large .. (il and string.char(c) or " ")
-            small = small .. (il and " " or string.char(c))
-        end
-    end
-    print("/lg = " .. large)
-    print("/sm = " .. small)
-    return {large, small}
-end
-
-for num = 1, 15 do
-    local xvar = "xfmc/Panel_" .. (num-1)
-    if     num == 1  then xvar = "xfmc/Upper"
-    elseif num == 14 then xvar = "xfmc/Scratch"
-    elseif num == 15 then xvar = "xfmc/Messages"
-    end
-    
-    XfmcLines.large[num] = am_variable_create("fmc/lines/lg_" .. num, "BYTE[30]", "")
-    XfmcLines.small[num] = am_variable_create("fmc/lines/sm_" .. num, "BYTE[30]", "")
-    
-    xpl_dataref_subscribe(xvar,"BYTE[80]",
-        function(val) 
-            print("**** " .. tostring(val))
-            local lines = convertXFMCstring(val)
-            am_variable_write(XfmcLines.large[num], lines[1])
-            am_variable_write(XfmcLines.small[num], lines[2])
-        end)
-end
+    end)
 
 -- ************************************************************************
 -- ** RECTANGLES for click-able area of icons/buttons
@@ -289,9 +253,11 @@ IconPitchRot  = Icon.new({"H_PD_IN.png",    "H_PD_OUT.png"},  48, 120, nil, nil,
 IconPitchPull = Icon.new(nil, 50, 120)
 
 
-txt_load_font("Segmental16.ttf")
-FmcLineBl = SegmentType.new(TextField.new("Segmental16",  30, "CENTER",  "#00AAFF",  472, 24))
-FmcLineWt = SegmentType.new(TextField.new("Segmental16",  30, "CENTER",  "#FFFFFF",  472, 24))
+txt_load_font("MonoFMC.ttf")
+txt_load_font("MonoFMCSmall.ttf")
+FmcLineBl = SegmentType.new(TextField.new("MonoFMCSmall", 24, "CENTER",  "#00AAFF",  440, 27))
+FmcLineWt = SegmentType.new(TextField.new("MonoFMC", 24, "CENTER",  "#FFFFFF",  440, 27))
+
 
 -- ************************************************************************
 -- ** CONTROLS 
@@ -502,11 +468,10 @@ local PD = PanelType.new("BASE_%%.png",true)
 -- ************************************************************************
 img_add_fullscreen("BG_GREY.png")
 
-local MAIN  = Page.new("MAIN", nil, nil, true)
-local POPUP = {}
-local FMC   = Page.new("FMC",   POPUP, "PAGE_GREY.png", false, Rectangle.new(1152, 152, 768, 888))
-local UPPER = Page.new("UPPER", POPUP, "PAGE_GREY.png", false, Rectangle.new(1152, 152, 768, 888))
-local LOWER = Page.new("LOWER", POPUP, "PAGE_GREY.png", false, Rectangle.new(1152, 152, 768, 888))
+local MAIN  = Page.new("MAIN", nil, true)
+local FMC   = Page.new("FMC",   "PAGE_GREY.png", false, Rectangle.new(1152, 152, 768, 888))
+local UPPER = Page.new("UPPER", "PAGE_GREY.png", false, Rectangle.new(1152, 152, 768, 888))
+local LOWER = Page.new("LOWER", "PAGE_GREY.png", false, Rectangle.new(1152, 152, 768, 888))
 
 -- ************************************************************************
 -- ** MAIN
@@ -524,11 +489,11 @@ addElem(50, 76, {CLEAR_ALERTS, XFlt("cl300/mast_caut"), XFlt("cl300/mast_warn")}
 PANEL = MAIN:add(PD:createInstance("DCP", -468, -0, 608, 152))
 addEncD( 64, 108, XCmd("xap/DCP/dcp_tune_right_coarse", "xap/DCP/dcp_tune_left_coarse"), 
                   XCmd("xap/DCP/dcp_tune_right_fine", "xap/DCP/dcp_tune_left_fine"), 
-                  XCmd("xap/DCP/dcp_tune_stb"), "FN", "TUNE", {angle = 24}, {angle = 24})
+                  XCmd("xap/DCP/dcp_tune_stb"), "FN", "TUNE", {angle = 36}, {angle = 36})
 
 addEncD(304, 108, XCmd("xap/DCP/dcp_menu_right", "xap/DCP/dcp_menu_left"), 
                   XCmd("xap/DCP/dcp_data_right", "xap/DCP/dcp_data_left"), 
-                  XCmd("xap/DCP/dcp_data_sel"), "RG", "MENU", {angle = 24}, {angle = 24})
+                  XCmd("xap/DCP/dcp_data_sel"), "RG", "MENU", {angle = 36}, {angle = 36})
 
 addEncD(544, 108, XInt("cl300/dcp_tilt"), XInt("cl300/dcp_range"), XInt("sim/cockpit2/EFIS/map_range"), "RG", "MENU",
                   {angle = 30, maxval = 1500, minval = -1500}, {angle = 30, maxval = 1500, minval = -1500}, {maxval = 2, minval = 2})
@@ -545,14 +510,10 @@ addKeyP(464, 108, XInt("cl300/dcp_radar"))
 addKeyP(544,  44, XInt("sim/cockpit2/EFIS/EFIS_weather_on"))
 
 PANEL = MAIN:add(PD:createInstance("MCP", -1076, -0, 844, 152))
---addEncS( 60, 108, XCmd("sim/radios/obs_HSI_up",     "sim/radios/obs_HSI_down"),     XInt("cl300/crc_butt"),  "FN", "CRS")
---addEncS(220, 108, XCmd("sim/autopilot/heading_up",  "sim/autopilot/heading_down"),  XInt("cl300/fgp_s_hdg"), "RG", "HDG")
---addEncS(380, 108, XCmd("sim/autopilot/airspeed_up", "sim/autopilot/airspeed_down"), XInt("sim/cockpit2/autopilot/airspeed_is_mach"), "FN", "SPD")
---addEncS(620, 108, XCmd("sim/autopilot/altitude_up", "sim/autopilot/altitude_down"), CANCEL_ALT_ALERT, "FN", "ALT")
-addEncS( 60, 108, CRS_DIAL, XInt("cl300/crc_butt"),  "FN", "CRS")
-addEncS(220, 108, HDG_DIAL, XInt("cl300/fgp_s_hdg"), "RG", "HDG")
-addEncS(380, 108, SPD_DIAL, XCmd("sim/autopilot/knots_mach_toggle"), "FN", "SPD")
-addEncS(620, 108, ALT_DIAL, CANCEL_ALT_ALERT, "FN", "ALT")
+addEncS( 60, 108, CRS_DIAL, XInt("cl300/crc_butt"),  "FN", "CRS", {tics = 30})
+addEncS(220, 108, HDG_DIAL, XInt("cl300/fgp_s_hdg"), "RG", "HDG", {tics = 30})
+addEncS(380, 108, SPD_DIAL, XCmd("sim/autopilot/knots_mach_toggle"), "FN", "SPD", {tics = 20})
+addEncS(620, 108, ALT_DIAL, CANCEL_ALT_ALERT, "FN", "ALT", {tics = 20})
 addElem(528,  76, VS_WHEEL, C300EncoderW)
 
 addKeyP( 60,  44, XInt("cl300/autop_fdir_h"))
@@ -607,61 +568,125 @@ addPbaS( 56, 64, XInt("cl300/nws_h"), "OFF")
 addElem(124, 60, XInt("sim/cockpit2/controls/gear_handle_down"), SwitchType.new(IconGear))
 
 PANEL = MAIN:add(PD:createInstance("PAGES", -1171, -1047, 730, 33))
-addElem(117, 16, AInt("PAGES/FMC_SHOW"),   C300Page, {keyword = "FMC"})
-addElem(365, 16, AInt("PAGES/UPPER_SHOW"), C300Page, {keyword = "UPPER"})
-addElem(613, 16, AInt("PAGES/LOWER_SHOW"), C300Page, {keyword = "LOWER"})
+addElem(117, 16, PAGE_FMC,   C300Page, {keyword = "FMC"})
+addElem(365, 16, PAGE_UPPER, C300Page, {keyword = "UPPER"})
+addElem(613, 16, PAGE_LOWER, C300Page, {keyword = "LOWER"})
 
 -- ************************************************************************
 -- ** FMC
 -- ************************************************************************
 PANEL = FMC:add(PD:createInstance("FMC",-16,-16,736,872))
-addElem(368,  76, AStr("fmc/lines/lg_1", 30), FmcLineBl)
-addElem(368,  76, AStr("fmc/lines/sm_1", 30), FmcLineWt)
-addElem(368, 110, AStr("fmc/lines/lg_2", 30), FmcLineBl)
-addElem(368, 110, AStr("fmc/lines/sm_2", 30), FmcLineWt)
-addElem(368, 134, AStr("fmc/lines/lg_3", 30), FmcLineBl)
-addElem(368, 134, AStr("fmc/lines/sm_3", 30), FmcLineWt)
-addElem(368, 162, AStr("fmc/lines/lg_4", 30), FmcLineBl)
-addElem(368, 162, AStr("fmc/lines/sm_4", 30), FmcLineWt)
-addElem(368, 186, AStr("fmc/lines/lg_5", 30), FmcLineBl)
-addElem(368, 186, AStr("fmc/lines/sm_5", 30), FmcLineWt)
-addElem(368, 214, AStr("fmc/lines/lg_6", 30), FmcLineBl)
-addElem(368, 214, AStr("fmc/lines/sm_6", 30), FmcLineWt)
-addElem(368, 238, AStr("fmc/lines/lg_7", 30), FmcLineBl)
-addElem(368, 238, AStr("fmc/lines/sm_7", 30), FmcLineWt)
-addElem(368, 266, AStr("fmc/lines/lg_8", 30), FmcLineBl)
-addElem(368, 266, AStr("fmc/lines/sm_8", 30), FmcLineWt)
-addElem(368, 290, AStr("fmc/lines/lg_9", 30), FmcLineBl)
-addElem(368, 290, AStr("fmc/lines/sm_9", 30), FmcLineWt)
-addElem(368, 318, AStr("fmc/lines/lg_10", 30), FmcLineBl)
-addElem(368, 318, AStr("fmc/lines/sm_10", 30), FmcLineWt)
-addElem(368, 342, AStr("fmc/lines/lg_11", 30), FmcLineBl)
-addElem(368, 342, AStr("fmc/lines/sm_11", 30), FmcLineWt)
-addElem(368, 370, AStr("fmc/lines/lg_12", 30), FmcLineBl)
-addElem(368, 370, AStr("fmc/lines/sm_12", 30), FmcLineWt)
-addElem(368, 394, AStr("fmc/lines/lg_13", 30), FmcLineBl)
-addElem(368, 394, AStr("fmc/lines/sm_13", 30), FmcLineWt)
-addElem(368, 428, AStr("fmc/lines/lg_14", 30), FmcLineBl)
-addElem(368, 428, AStr("fmc/lines/sm_14", 30), FmcLineWt)
+addElem(368,  74, XByt(getXfmcLineName(1),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368,  74, XByt(getXfmcLineName(1),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 108, XByt(getXfmcLineName(2),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 108, XByt(getXfmcLineName(2),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 132, XByt(getXfmcLineName(3),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 132, XByt(getXfmcLineName(3),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 160, XByt(getXfmcLineName(4),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 160, XByt(getXfmcLineName(4),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 184, XByt(getXfmcLineName(5),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 184, XByt(getXfmcLineName(5),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 212, XByt(getXfmcLineName(6),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 212, XByt(getXfmcLineName(6),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 236, XByt(getXfmcLineName(7),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 236, XByt(getXfmcLineName(7),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 264, XByt(getXfmcLineName(8),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 264, XByt(getXfmcLineName(8),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 288, XByt(getXfmcLineName(9),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 288, XByt(getXfmcLineName(9),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 316, XByt(getXfmcLineName(10),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 316, XByt(getXfmcLineName(10),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 340, XByt(getXfmcLineName(11),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 340, XByt(getXfmcLineName(11),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 368, XByt(getXfmcLineName(12),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 368, XByt(getXfmcLineName(12),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 392, XByt(getXfmcLineName(13),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 392, XByt(getXfmcLineName(13),80), FmcLineBl, {custom = getSmallXfmcString})
+addElem(368, 426, XByt(getXfmcLineName(14),80), FmcLineWt, {custom = getLargeXfmcString})
+addElem(368, 426, XByt(getXfmcLineName(14),80), FmcLineWt, {custom = getSmallXfmcString})
 
 addElem(656, 452, XInt("xfmc/Status"), C300LedFMC)
 
-addKeyF( 56, 124, XInt("xfmc/Keypath"),  0)
-addKeyF( 56, 176, XInt("xfmc/Keypath"),  1)
-addKeyF( 56, 228, XInt("xfmc/Keypath"),  2)
-addKeyF( 56, 280, XInt("xfmc/Keypath"),  3)
-addKeyF( 56, 332, XInt("xfmc/Keypath"),  4)
-addKeyF( 56, 384, XInt("xfmc/Keypath"),  5)
-addKeyF(680, 124, XInt("xfmc/Keypath"),  6)
-addKeyF(680, 176, XInt("xfmc/Keypath"),  7)
-addKeyF(680, 228, XInt("xfmc/Keypath"),  8)
-addKeyF(680, 280, XInt("xfmc/Keypath"),  9)
-addKeyF(680, 332, XInt("xfmc/Keypath"), 10)
-addKeyF(680, 384, XInt("xfmc/Keypath"), 11)
+addKeyF( 80, 134, XInt("xfmc/Keypath"),  0)
+addKeyF( 80, 186, XInt("xfmc/Keypath"),  1)
+addKeyF( 80, 238, XInt("xfmc/Keypath"),  2)
+addKeyF( 80, 290, XInt("xfmc/Keypath"),  3)
+addKeyF( 80, 342, XInt("xfmc/Keypath"),  4)
+addKeyF( 80, 394, XInt("xfmc/Keypath"),  5)
+addKeyF(656, 134, XInt("xfmc/Keypath"),  6)
+addKeyF(656, 186, XInt("xfmc/Keypath"),  7)
+addKeyF(656, 238, XInt("xfmc/Keypath"),  8)
+addKeyF(656, 290, XInt("xfmc/Keypath"),  9)
+addKeyF(656, 342, XInt("xfmc/Keypath"), 10)
+addKeyF(656, 394, XInt("xfmc/Keypath"), 11)
+
+addKeyF( 80, 488, XInt("xfmc/Keypath"), 17) -- FIX
+addKeyF(152, 488, XInt("xfmc/Keypath"), 13) -- RTE
+addKeyF(224, 488, XInt("xfmc/Keypath"), 18) -- LEGS
+addKeyF(296, 488, XInt("xfmc/Keypath"), 14) -- DEP/ARR
+addKeyF(368, 488, XInt("xfmc/Keypath"), 19) -- HOLD
+addKeyF(440, 488, XInt("xfmc/Keypath"), 16) -- VNAV
+addKeyF(512, 488, XInt("xfmc/Keypath"), 15) -- AP
+addKeyF(656, 488, XInt("xfmc/Keypath"), 22) -- EXEC
+
+
+addKeyF( 80, 552, XInt("xfmc/Keypath"), 12) -- INIT REF
+addKeyF(152, 552, XInt("xfmc/Keypath"), 24) -- TUNE
+addKeyF(224, 552, XInt("xfmc/Keypath"), 23) -- MENU
+addKeyF(296, 552, XInt("xfmc/Keypath"), 21) -- PROG
+addKeyF(368, 552, XInt("xfmc/Keypath"), 20) -- PERF
+addKeyF(440, 552, XInt("xfmc/Keypath"), 25) -- PREV
+addKeyF(512, 552, XInt("xfmc/Keypath"), 26) -- NEXT
+addKeyF(584, 552, XInt("xfmc/Keypath"), 56) -- CLR
+addKeyF(656, 552, XInt("xfmc/Keypath"), 54) -- DEL
+
+addKeyF( 80, 624, XInt("xfmc/Keypath"), 27) -- A
+addKeyF(140, 624, XInt("xfmc/Keypath"), 28)
+addKeyF(200, 624, XInt("xfmc/Keypath"), 29)
+addKeyF(260, 624, XInt("xfmc/Keypath"), 30)
+addKeyF(320, 624, XInt("xfmc/Keypath"), 31)
+addKeyF(380, 624, XInt("xfmc/Keypath"), 32)
+addKeyF(440, 624, XInt("xfmc/Keypath"), 33) -- G
+addKeyF(512, 624, XInt("xfmc/Keypath"), 57) -- 1
+addKeyF(584, 624, XInt("xfmc/Keypath"), 58)
+addKeyF(656, 624, XInt("xfmc/Keypath"), 59) -- 3
+
+addKeyF( 80, 684, XInt("xfmc/Keypath"), 34) -- H
+addKeyF(140, 684, XInt("xfmc/Keypath"), 35)
+addKeyF(200, 684, XInt("xfmc/Keypath"), 36)
+addKeyF(260, 684, XInt("xfmc/Keypath"), 37)
+addKeyF(320, 684, XInt("xfmc/Keypath"), 38)
+addKeyF(380, 684, XInt("xfmc/Keypath"), 39)
+addKeyF(440, 684, XInt("xfmc/Keypath"), 40) -- N
+addKeyF(512, 684, XInt("xfmc/Keypath"), 60) -- 4
+addKeyF(584, 684, XInt("xfmc/Keypath"), 61)
+addKeyF(656, 684, XInt("xfmc/Keypath"), 62) -- 6
+
+addKeyF( 80, 744, XInt("xfmc/Keypath"), 41) -- O
+addKeyF(140, 744, XInt("xfmc/Keypath"), 42)
+addKeyF(200, 744, XInt("xfmc/Keypath"), 43)
+addKeyF(260, 744, XInt("xfmc/Keypath"), 44)
+addKeyF(320, 744, XInt("xfmc/Keypath"), 45)
+addKeyF(380, 744, XInt("xfmc/Keypath"), 46)
+addKeyF(440, 744, XInt("xfmc/Keypath"), 47) -- U
+addKeyF(512, 744, XInt("xfmc/Keypath"), 63) -- 7
+addKeyF(584, 744, XInt("xfmc/Keypath"), 64)
+addKeyF(656, 744, XInt("xfmc/Keypath"), 65) -- 9
+
+addKeyF( 80, 804, XInt("xfmc/Keypath"), 48) -- V
+addKeyF(140, 804, XInt("xfmc/Keypath"), 49)
+addKeyF(200, 804, XInt("xfmc/Keypath"), 50)
+addKeyF(260, 804, XInt("xfmc/Keypath"), 51)
+addKeyF(320, 804, XInt("xfmc/Keypath"), 52) -- Z
+addKeyF(440, 804, XInt("xfmc/Keypath"), 55) -- /
+addKeyF(512, 804, XInt("xfmc/Keypath"), 66) -- .
+addKeyF(584, 804, XInt("xfmc/Keypath"), 67) -- 0
+addKeyF(656, 804, XInt("xfmc/Keypath"), 68) -- +/-
 
 -- ************************************************************************
 -- ** UPPER
 -- ************************************************************************
+
 PANEL = UPPER:add(PD:createInstance("FUEL",-16,-16,368,176))
 addPbaS(184,  60, XInt("cl300/fuel_xflow_up_h"), "BAR")
 addPbaS(184, 136, XInt("cl300/fuel_xflow_dn_h"), "BAR")
@@ -845,15 +870,14 @@ addPbaS(184, 284, XInt("cl300/engn_ign_h"), "ON")
 addSw45(292, 292, XInt("cl300/en_starter_r"), nil, {momentary = {[2] = 1}})
 
 PANEL = LOWER:add(PD:createInstance("APU",-384,-688,368,100))
-addSw45( 64,  68, XInt("sim/cockpit/engine/APU_switch"), nil, {momentary = {[2] = 1}})
+addSw45( 64,  68, APU_Switch, nil, {momentary = {[2] = 1}})
 addElem(248,  50, XInt("cl300/lg_man"), SwitchType.new(IconManGear))
 
 PANEL = LOWER:add(PD:createInstance("OXY",-384,-788,368,100))
 addCPbS(112,  60, XInt("cl300/oxigen_terap_h"), "OFF","CLR")
 addSw45(256,  68, XInt("cl300/oxigen_ox"))
 
-
-
+-- ********** Deploy pages ***********************
 
 MAIN:deploy()
 FMC:deploy()
