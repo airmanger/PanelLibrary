@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pluginstrument>
+    <aircraft>Challenger 300</aircraft>
+    <author>Jack Zero</author>
+    <compatibleFSX>false</compatibleFSX>
+    <compatibleP3D>false</compatibleP3D>
+    <compatibleXPL>true</compatibleXPL>
+    <configVersion>1</configVersion>
+    <description>Full cockpit controls for Ddenn's Bombardier Challenger 300 with popups for full control of the pedestal and FMC. Designed to be used on a single full HD touchscreen. The FMC popup is designed to work with the latest version of XHSI. It will (currently) not work with UFMC or the default X-Plane FMC.
+
+This version of the cockpit is designed to run in conjunction with a second X-Plane instance showing the planes PFDs and MFDs.
+
+Note that the minimum requirement for the instrument is the 10.36 version of the Challeger 300. 
+
+Note that the MFD doesn't contain a map and requries a running XHSI ND below it to show the map properly. 
+Two matching XHSI config files are included, one for the full resolution of 670x895 on the right side of a 1440x900 screen and one for a scaled down version of the instrument using the resolution of 536x716 required for the full 1920x1080 touchscreen cockpit.
+Also note that my (unofficial) patch 10.36 Patch 2 for the 10.36 version of the Challenger is required, see:
+http://forums.x-plane.org/index.php?showtopic=87865
+
+
+Full cockpit controls (glareshield, pedestal, fmc) for Ddenn's Challenger 300, meant to be used on a Full HD touchscreen with a instance of X-Plane showing the displays running in the background.
+Note that the FMC popup will require X-FMC in order to work.
+It will only work with at least the 10.31 version of the Challenger since the names of all custom dataref where changed in the update.
+</description>
+    <pluginInterfaceVersion>100</pluginInterfaceVersion>
+    <prefHeight>1080</prefHeight>
+    <prefWidth>1920</prefWidth>
+    <type>Cockpit (X-Plane Displays)</type>
+    <uuid>9bf85011-c790-4f86-a9db-778e9d1821df</uuid>
+    <version>1</version>
+</pluginstrument>

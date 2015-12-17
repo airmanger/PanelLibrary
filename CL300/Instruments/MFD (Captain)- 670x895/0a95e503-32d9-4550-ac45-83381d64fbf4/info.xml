@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pluginstrument>
+    <aircraft>Challenger 300</aircraft>
+    <author>Jack Zero</author>
+    <compatibleFSX>false</compatibleFSX>
+    <compatibleP3D>false</compatibleP3D>
+    <compatibleXPL>true</compatibleXPL>
+    <configVersion>1</configVersion>
+    <description>Captain side MFD for Ddenn's Bombardier Challenger 300.
+Note that the MFD doesn't contain a map and requries a running XHSI ND below it to show the map properly. 
+Two matching XHSI config files are included, one for the full resolution of 670x895 on the right side of a 1440x900 screen and one for a scaled down version of the instrument using the resolution of 536x716 required for the full 1920x1080 touchscreen cockpit.
+Also note that my (unofficial) patch 10.36 Patch 2 for the 10.36 version of the Challenger is required, see:
+http://forums.x-plane.org/index.php?showtopic=87865</description>
+    <pluginInterfaceVersion>100</pluginInterfaceVersion>
+    <prefHeight>895</prefHeight>
+    <prefWidth>670</prefWidth>
+    <type>Display: MFD (Captian)</type>
+    <uuid>0a95e503-32d9-4550-ac45-83381d64fbf4</uuid>
+    <version>1</version>
+</pluginstrument>

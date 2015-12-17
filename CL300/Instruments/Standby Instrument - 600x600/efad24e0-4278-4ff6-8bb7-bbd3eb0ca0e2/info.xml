@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pluginstrument>
+    <aircraft>Challenger 300</aircraft>
+    <author>Jack Zero</author>
+    <compatibleFSX>false</compatibleFSX>
+    <compatibleP3D>false</compatibleP3D>
+    <compatibleXPL>true</compatibleXPL>
+    <configVersion>1</configVersion>
+    <description>Standby instrument for Ddenn's Bombardier Challenger 300. The barometer is linked to the copilot's barometer dataref.
+Based on the B737 stanby attitude indicator from Sim Innovations.</description>
+    <pluginInterfaceVersion>100</pluginInterfaceVersion>
+    <prefHeight>600</prefHeight>
+    <prefWidth>600</prefWidth>
+    <type>Display: Standby instrument</type>
+    <uuid>efad24e0-4278-4ff6-8bb7-bbd3eb0ca0e2</uuid>
+    <version>1</version>
+</pluginstrument>

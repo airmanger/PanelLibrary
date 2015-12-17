@@ -1,0 +1,102 @@
+local OFFSET  = ((not CAPTAIN) and -403 or 0)
+PAGE = Page.new("cl300/mfd_sumry_" .. SIDE, "SUMRY.png", 0, 412+OFFSET, 670, 392)
+
+-- == ELECTRICAL ======================
+local tsumGEN_A_L   = Text.new("96",   TXT_12B_R , {"#00FF00", "#CCCCCC"}, 296, 594+OFFSET, 32, 12, tCONST)
+local tsumGEN_A_A   = Text.new("96",   TXT_12B_R , {"#00FF00", "#CCCCCC"}, 341, 594+OFFSET, 32, 12, tCONST)
+local tsumGEN_A_R   = Text.new("96",   TXT_12B_R , {"#00FF00", "#CCCCCC"}, 386, 594+OFFSET, 32, 12, tCONST)
+local tsumGEN_V_L   = Text.new("28.0", TXT_12B_R , {"#00FF00", "#CCCCCC"}, 296, 609+OFFSET, 32, 12, tCONST)
+local tsumGEN_V_A   = Text.new("28.0", TXT_12B_R , {"#00FF00", "#CCCCCC"}, 341, 609+OFFSET, 32, 12, tCONST)
+local tsumGEN_V_R   = Text.new("28.0", TXT_12B_R , {"#00FF00", "#CCCCCC"}, 386, 609+OFFSET, 32, 12, tCONST)
+local tsumBAT_V_L   = Text.new("28.0", TXT_12B_R , {"#00FF00", "#CCCCCC"}, 296, 624+OFFSET, 32, 12, tCONST)
+local tsumBAT_V_R   = Text.new("28.0", TXT_12B_R , {"#00FF00", "#CCCCCC"}, 386, 624+OFFSET, 32, 12, tCONST)
+local tsumBAT_T_L   = Text.new("26",   TXT_12B_R , {"#00FF00", "#CCCCCC"}, 296, 639+OFFSET, 32, 12, tCONST)
+local tsumBAT_T_R   = Text.new("23",   TXT_12B_R , {"#00FF00", "#CCCCCC"}, 386, 639+OFFSET, 32, 12, tCONST)
+
+-- GEN
+xpl_dataref_subscribe("cl300/gen_amps_l",    "FLOAT", function(v) tsumGEN_A_L:text(limit(v, 0)) end)
+xpl_dataref_subscribe("cl300/gen_amps_r",    "FLOAT", function(v) tsumGEN_A_R:text(limit(v, 0)) end)
+xpl_dataref_subscribe("cl300/gen_amps_apu",  "FLOAT", function(v) tsumGEN_A_A:text(limit(v, 0)) end)
+xpl_dataref_subscribe("cl300/gen_volts_l",   "FLOAT", function(v) tsumGEN_V_L:text(limit(v, 1)) end)
+xpl_dataref_subscribe("cl300/gen_volts_r",   "FLOAT", function(v) tsumGEN_V_R:text(limit(v, 1)) end)
+xpl_dataref_subscribe("cl300/gen_volts_apu", "FLOAT", function(v) tsumGEN_V_A:text(limit(v, 1)) end)
+xpl_dataref_subscribe("sim/cockpit2/electrical/generator_on", "INT[8]", 
+	function(v) 
+		tsumGEN_A_L:colorindex(v[1] > 0 and 1 or 2)
+		tsumGEN_V_L:colorindex(v[1] > 0 and 1 or 2) 
+		tsumGEN_A_R:colorindex(v[2] > 0 and 1 or 2) 
+		tsumGEN_V_R:colorindex(v[2] > 0 and 1 or 2) 
+	end)
+xpl_dataref_subscribe("sim/cockpit2/electrical/APU_generator_on", "INT", 
+	function(v) 
+		tsumGEN_A_A:colorindex(v > 0 and 1 or 2) 
+		tsumGEN_V_A:colorindex(v > 0 and 1 or 2) 
+	end)
+-- BAT
+xpl_dataref_subscribe("sim/cockpit2/electrical/battery_voltage_indicated_volts",	"FLOAT[8]",
+	function(v) 
+		tsumBAT_V_L:text(limit(v[1], 1))
+		tsumBAT_V_R:text(limit(v[2], 1))
+	end)
+xpl_dataref_subscribe("sim/cockpit2/electrical/battery_on", 						"INT[8]", 
+	function(v) 
+		tsumBAT_V_L:colorindex(v[1] > 0 and 1 or 2)
+		tsumBAT_T_L:colorindex(v[1] > 0 and 1 or 2)
+		tsumBAT_V_R:colorindex(v[2] > 0 and 1 or 2)
+		tsumBAT_T_R:colorindex(v[2] > 0 and 1 or 2)
+	end)
+
+-- == ECS ======================
+local tsumCAB_OXY   = Text.new("1200",  TXT_12B_R , {"#00FF00"}, 120, 573+OFFSET, 50, 12, tCONST)
+local tsumCAB_ALT   = Text.new("3600",  TXT_12B_R , {"#00FF00"}, 120, 588+OFFSET, 50, 12, tCONST)
+local tsumCAB_VVI   = Text.new("-1200", TXT_12B_R , {"#00FF00"}, 120, 603+OFFSET, 50, 12, tCONST)
+local isumCAB_U		= Image.new("cabrate2_up.png",               108, 603+OFFSET, 10, 14, tOPTIONAL)
+local isumCAB_D		= Image.new("cabrate2_dn.png",               108, 603+OFFSET, 10, 14, tOPTIONAL)
+local tsumCAB_DIFFP = Text.new("9.5",   TXT_12B_R , {"#00FF00"}, 120, 618+OFFSET, 50, 12, tCONST)
+local tsumCAB_LDG   = Text.new("1000",  TXT_12B_R , {"#00FFFF"}, 120, 633+OFFSET, 50, 12, tCONST)
+local tsumCAB_BLR_L = Text.new("52",    TXT_12B_R , {"#00FF00"},  20, 682+OFFSET, 20, 12, tCONST)
+local tsumCAB_BLP_R = Text.new("52",    TXT_12B_R , {"#00FF00"}, 150, 682+OFFSET, 20, 12, tCONST)
+
+xpl_dataref_subscribe("sim/cockpit2/pressurization/indicators/cabin_altitude_ft",		"FLOAT", function(v) tsumCAB_ALT:text(limit(v,0)) end)
+xpl_dataref_subscribe("sim/cockpit2/pressurization/indicators/cabin_vvi_fpm", 			"FLOAT", function(v) tsumCAB_VVI:text(limit(v,0)) isumCAB_U:showElem(z~=0 and v>10) isumCAB_D:showElem(z~=0 and v<-10) end)
+xpl_dataref_subscribe("sim/cockpit2/pressurization/indicators/pressure_diffential_psi", "FLOAT", function(v) tsumCAB_DIFFP:text(limit(v,1)) end)
+xpl_dataref_subscribe("cl300/pressure_lndg_alt_2",										"FLOAT", function(v) tsumCAB_LDG:text(25*limit((v+1)*200,0)) end) -- round to next 25 ft
+xpl_dataref_subscribe("cl300/bleed_psi_l", 												"FLOAT", function(v) tsumCAB_BLR_L:text(limit(v,0)) end)
+xpl_dataref_subscribe("cl300/bleed_psi_r", 												"FLOAT", function(v) tsumCAB_BLP_R:text(limit(v,0)) end)
+
+-- == HYDRAULICS ======================
+local tsumHYDR_P_L = Text.new("2981", TXT_12B_R , {"#00FF00"},            536, 594+OFFSET, 36, 12, tCONST)
+local tsumHYDR_P_A = Text.new("2981", TXT_12B_R , {"#00FF00"},            576, 594+OFFSET, 36, 12, tCONST)
+local tsumHYDR_P_R = Text.new("2981", TXT_12B_R , {"#00FF00"},            616, 594+OFFSET, 36, 12, tCONST)
+local tsumHYDR_T_L = Text.new("100",  TXT_12B_R , {"#00FF00"},            536, 609+OFFSET, 36, 12, tCONST)
+local tsumHYDR_T_A = Text.new("100",  TXT_12B_R , {"#00FF00"},            576, 609+OFFSET, 36, 12, tCONST)
+local tsumHYDR_T_R = Text.new("100",  TXT_12B_R , {"#00FF00"},            616, 609+OFFSET, 36, 12, tCONST)
+local tsumHYDR_Q_L = Text.new("85",   TXT_12B_R , {"#00FF00"},            536, 624+OFFSET, 36, 12, tCONST)
+local tsumHYDR_Q_A = Text.new("85",   TXT_12B_R , {"#00FF00"},            576, 624+OFFSET, 36, 12, tCONST)
+local tsumHYDR_Q_R = Text.new("85",   TXT_12B_R , {"#00FF00"},            616, 624+OFFSET, 36, 12, tCONST)
+local tsumHYDR_L1  = Text.new("NORM", TXT_12B_L , {"#00FF00", "#FFFF00"}, 544, 639+OFFSET, 55, 12, tCONST)
+local tsumHYDR_L2  = Text.new("NORM", TXT_12B_L , {"#00FF00", "#FFFF00"}, 544, 654+OFFSET, 55, 12, tCONST)
+local tsumHYDR_L3  = Text.new("2870", TXT_12B_L , {"#00FF00", "#FFFF00"}, 544, 669+OFFSET, 55, 12, tCONST)
+
+xpl_dataref_subscribe("sim/cockpit2/hydraulics/indicators/hydraulic_pressure_1", "FLOAT", function(v) tsumHYDR_P_L:text(limit(v,0)) end)
+xpl_dataref_subscribe("sim/cockpit2/hydraulics/indicators/hydraulic_pressure_2", "FLOAT", function(v) tsumHYDR_P_R:text(limit(v,0)) end)
+xpl_dataref_subscribe("cl300/hd_aux_state", "INT", function(v) tsumHYDR_P_A:text(v > 0 and 2981 or 0) end)
+xpl_dataref_subscribe("sim/weather/temperature_ambient_c", "FLOAT", function(v) 
+	local ht = math.atan(v/106)*19 + 25
+	tsumHYDR_T_L:text(limit(ht-0.3,0))
+	tsumHYDR_T_A:text(limit(ht+1.1,0))
+	tsumHYDR_T_R:text(limit(ht+0.3,0))
+end)
+xpl_dataref_subscribe("sim/cockpit2/hydraulics/indicators/hydraulic_fluid_ratio_1", "FLOAT", "sim/flightmodel2/gear/deploy_ratio", "FLOAT[10]", function(v,g) tsumHYDR_Q_L:text(limit(v * (100 - 11.7 * (g[1]+g[2]+g[3])),0)) end)
+xpl_dataref_subscribe("sim/cockpit2/hydraulics/indicators/hydraulic_fluid_ratio_2", "FLOAT", function(v) tsumHYDR_Q_R:text(limit(v * 100,0)) end)
+xpl_dataref_subscribe("cl300/hd_l_pump_state", "INT", "cl300/hd_l_engn_state", "INT", 
+	function(v,w) 
+		tsumHYDR_L1:text((v+w > 0) and "NORM" or "LOW") 
+		tsumHYDR_L2:text((v+w > 0) and "NORM" or "LOW") 
+		tsumHYDR_L3:text((v+w > 0) and "2870" or "1200") 
+		tsumHYDR_L1:colorindex((v+w > 0) and 1 or 2)
+		tsumHYDR_L2:colorindex((v+w > 0) and 1 or 2)
+		tsumHYDR_L3:colorindex((v+w > 0) and 1 or 2)
+	end)
+
+PAGE:finalize()

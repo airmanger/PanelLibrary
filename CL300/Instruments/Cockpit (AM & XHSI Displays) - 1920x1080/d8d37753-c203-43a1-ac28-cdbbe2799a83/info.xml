@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pluginstrument>
+    <aircraft>Challenger 300</aircraft>
+    <author>Jack Zero</author>
+    <compatibleFSX>false</compatibleFSX>
+    <compatibleP3D>false</compatibleP3D>
+    <compatibleXPL>true</compatibleXPL>
+    <configVersion>1</configVersion>
+    <description>Full cockpit controls for Ddenn's Bombardier Challenger 300 with popups for full control of the pedestal and FMC. Designed to be used on a single full HD touchscreen. The FMC popup is designed to work with the latest version of XHSI. It will (currently) not work with UFMC or the default X-Plane FMC.
+
+This version of the cockpit is designed to run in conjunction with three XHSI instances (showing one PFD and three NDs) as well as my AirManager PFD overlay, MFDs, clock and standby instrument. The required config files for XHSI are included in the displays directories. 
+Be sure to set the correct AptNav resource directory as well as the UDP ports in the plugin after installing the config files.
+
+Note that the minimum requirement for the instrument is the 10.36 version of the Challeger 300 in combination with my (unofficial) patch 10.36 Patch 2 for the Challenger, see:
+http://forums.x-plane.org/index.php?showtopic=87865
+
+The positions of the AirManager displays are:
+
+    PFD:    X:   24, Y: 208, Width: 536, Height: 716
+    MFD     X:  592, Y: 208, Width: 536, Height: 716
+    MFD     X: 1360, Y: 208, Width: 536, Height: 716
+    STBY    X: 1169, Y: 261, Width: 150, Height: 150
+    CLOCK   X: 1169, Y: 461, Width: 150, Height: 150
+
+The settings and positions of the XHSI windows are:
+
+Instance 1 (Captains PFD):
+
+    System /  Menu control:     Pilot
+    Windows / On Top:           NO
+              Hide title:       YES
+              Lock size:        YES
+              PFD:              24, 208, 536, 358, 0
+              ND:               24, 566, 536, 358, 0
+              Minimize cmd:     YES
+    Graphics / Border style:    none
+               More colors:     NO
+               Bold fonts:      YES
+               Anti-aliasing:   YES
+    Avionics / Style:           Boeing
+               Min Runway:      4000 ft
+               Use battery:     NO
+               Sync CRS         NO
+               HSI source:      Switchable
+    PFD / Style:                Rounded Square
+          Full HSI              NO
+          V-BAR FD              YES
+          AOA indicator         NO
+          Radio frequencies     NO
+          Center ADI            YES
+    ND / Airbus modes           NO
+         Centered APP as HSI    NO
+         Classic HSI color      NO
+         Tuned only in APP/VOR  YES
+         EFIS mode mismatch     YES
+         Cetern PLAN            NO
+         Map only inside rose   NO
+         Range arcs             YES
+         Runways on 10/20 nM    NO
+         TCAS always on         NO
+         Display frequencies    YES
+         AP heading on top      YES
+         
+Instance 2 (Captains MFD):
+
+    System /  Menu control:     Copilot
+    Windows / On Top:           NO
+              Hide title:       YES
+              Lock size:        YES
+              ND:               640, 538, 440, 320, 0
+              Minimize cmd:     YES
+    Graphics / Border style:    none
+               More colors:     NO
+               Bold fonts:      YES
+               Anti-aliasing:   YES
+    Avionics / Style:           Boeing
+               Min Runway:      4000 ft
+               Use battery:     NO
+               Sync CRS         NO
+               HSI source:      Switchable
+    ND / Airbus modes           NO
+         Centered APP as HSI    NO
+         Classic HSI color      NO
+         Tuned only in APP/VOR  YES
+         EFIS mode mismatch     YES
+         Cetern PLAN            NO
+         Map only inside rose   NO
+         Range arcs             YES
+         Runways on 10/20 nM    NO
+         TCAS always on         NO
+         Display frequencies    YES
+         AP heading on top      YES
+         
+Instance 3 (Captains MFD):
+
+    System /  Menu control:     Copilot
+    Windows / On Top:           NO
+              Hide title:       YES
+              Lock size:        YES
+              ND:               1408, 538, 440, 320, 0
+              Minimize cmd:     YES
+    Graphics / Border style:    none
+               More colors:     NO
+               Bold fonts:      YES
+               Anti-aliasing:   YES
+    Avionics / Style:           Boeing
+               Min Runway:      4000 ft
+               Use battery:     NO
+               Sync CRS         NO
+               HSI source:      Switchable
+    ND / Airbus modes           NO
+         Centered APP as HSI    NO
+         Classic HSI color      NO
+         Tuned only in APP/VOR  YES
+         EFIS mode mismatch     YES
+         Cetern PLAN            NO
+         Map only inside rose   NO
+         Range arcs             YES
+         Runways on 10/20 nM    NO
+         TCAS always on         NO
+         Display frequencies    YES
+         AP heading on top      YES
+         
+
+</description>
+    <pluginInterfaceVersion>100</pluginInterfaceVersion>
+    <prefHeight>1080</prefHeight>
+    <prefWidth>1920</prefWidth>
+    <type>Cockpit (AirManager/XHSI Displays)</type>
+    <uuid>d8d37753-c203-43a1-ac28-cdbbe2799a83</uuid>
+    <version>1</version>
+</pluginstrument>

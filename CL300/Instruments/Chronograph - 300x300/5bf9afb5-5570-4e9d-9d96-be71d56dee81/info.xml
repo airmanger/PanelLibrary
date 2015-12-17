@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pluginstrument>
+    <aircraft>Challenger 300</aircraft>
+    <author>Jack Zero</author>
+    <compatibleFSX>false</compatibleFSX>
+    <compatibleP3D>false</compatibleP3D>
+    <compatibleXPL>true</compatibleXPL>
+    <configVersion>1</configVersion>
+    <description>Clock display for the Ddenn's Bombardier Challenger 300.
+Note that my (unofficial) patch 10.36 Patch 2 for the 10.36 version of the Challenger is required, see:
+http://forums.x-plane.org/index.php?showtopic=87865</description>
+    <pluginInterfaceVersion>100</pluginInterfaceVersion>
+    <prefHeight>300</prefHeight>
+    <prefWidth>300</prefWidth>
+    <type>Display: Chronograph</type>
+    <uuid>5bf9afb5-5570-4e9d-9d96-be71d56dee81</uuid>
+    <version>1</version>
+</pluginstrument>
